@@ -1,8 +1,6 @@
-(ns example02.hlc.user
+(ns example02.fabric-sdk.user
   (:require [cljs.nodejs :as nodejs]
             [promesa.core :as p :include-macros true]))
-
-(def hlc (nodejs/require "hlc"))
 
 (defn enroll [member password]
   (p/promise

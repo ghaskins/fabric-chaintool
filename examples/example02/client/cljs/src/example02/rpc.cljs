@@ -1,6 +1,6 @@
 (ns example02.rpc
   (:require [cljs.nodejs :as nodejs]
-            [example02.hlc.user :as hlc.user]
+            [example02.fabric-sdk.user :as fabric.user]
             [promesa.core :as p :include-macros true]))
 
 (defn- post [method {:keys [user id func args] :as options}]
@@ -11,10 +11,10 @@
     (p/chain (method user request) str)))
 
 (defn deploy [args]
-  (post hlc.user/deploy args))
+  (post fabric.user/deploy args))
 
 (defn invoke [args]
-  (post hlc.user/invoke args))
+  (post fabric.user/invoke args))
 
 (defn query [args]
-  (post hlc.user/query args))
+  (post fabric.user/query args))

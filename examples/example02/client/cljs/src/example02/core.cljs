@@ -1,8 +1,8 @@
 (ns example02.core
   (:require [cljs.nodejs :as nodejs]
             [example02.rpc :as rpc]
-            [example02.hlc.core :as hlc]
-            [example02.hlc.user :as hlc.user]
+            [example02.fabric-sdk.core :as fabric]
+            [example02.fabric-sdk.user :as fabric.user]
             [example02.util :as util]
             [promesa.core :as p :include-macros true]))
 
@@ -13,30 +13,36 @@
 
 (defn- loadproto [name]
   (do
-    (.loadProtoFile pb (str "./" name ".proto") builder)
+    (.loadProtoFile pb (str "./protos/" name ".proto") builder)
     (.build builder name)))
 
 (def init (loadproto "appinit"))
 (def app (loadproto "org.hyperledger.chaincode.example02"))
 
 (defn connect [{:keys [path peer membersrvc username password]}]
-  (let [path (str (homedir) "/.hyperledger/client/kvstore")]
+  (let [path (str (homedir) "/.hyperledger/client/kvstore")
+        client (fabric/new-client)
+        chain (fabric/new-chain {:client client
+                                 :name "chaintool-demo"
+                                 :peers ["grpc://localhost:7051"]
+                                 :orderers ["grpc://localhost:7050"]})
+        eventhub (fabric/new-eventhub ["grpc://localhost:7053"])]
 
     ;; ensure our path is created
     (util/mkdirp path)
 
     ;; configure the chain environment and log in
-    (p/alet [chain (p/await (hlc/new-chain "mychain"))
-             kvstore (p/await (hlc/new-file-kv-store path))
+    (p/alet [chain (p/await (fabric/new-chain "mychain"))
+             kvstore (p/await (fabric/new-file-kv-store path))
 
              ;; configure the chain environment
-             _ (p/await (p/all [(hlc/set-kv-store chain kvstore)
-                                (hlc/set-membersrvc-url chain membersrvc)
-                                (hlc/add-peer chain peer)]))
+             _ (p/await (p/all [(fabric/set-kv-store chain kvstore)
+                                (fabric/set-membersrvc-url chain membersrvc)
+                                (fabric/add-peer chain peer)]))
 
              ;; login using the provided username/password
-             member (p/await (hlc/get-member chain username))
-             _ (p/await (hlc.user/enroll member password))]
+             member (p/await (fabric/get-member chain username))
+             _ (p/await (fabric.user/enroll member password))]
 
             {:chain chain :user member})))
 
