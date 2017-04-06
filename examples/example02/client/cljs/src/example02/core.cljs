@@ -1,9 +1,12 @@
 (ns example02.core
   (:require [cljs.nodejs :as nodejs]
             [example02.rpc :as rpc]
-            [example02.hlc.core :as hlc]
-            [example02.hlc.user :as hlc.user]
             [example02.util :as util]
+            [example02.fabric-sdk.core :as fabric]
+            [example02.fabric-sdk.chain :as fabric.chain]
+            [example02.fabric-sdk.eventhub :as fabric.eventhub]
+            [example02.fabric-sdk.ca :as fabric.ca]
+            [example02.fabric-sdk.user :as fabric.user]
             [promesa.core :as p :include-macros true]))
 
 (def pb (nodejs/require "protobufjs"))
@@ -13,32 +16,50 @@
 
 (defn- loadproto [name]
   (do
-    (.loadProtoFile pb (str "./" name ".proto") builder)
+    (.loadProtoFile pb (str "./protos/" name ".proto") builder)
     (.build builder name)))
 
 (def init (loadproto "appinit"))
 (def app (loadproto "org.hyperledger.chaincode.example02"))
 
+(def get-user [client ca username password]
+  (-> (fabric/get-user-context client username)
+      (p/then (fn [user]
+                (if (and user (fabric.user/enrolled? user))
+                  user
+                  ;;else
+                  (-> (fabric.ca/enroll ca username password)
+                      (p/then (fn [enrollment]
+                                (let [user (fabric.user/new client username)]
+                                  (-> (fabric.user/set-enrollment enrollment)
+                                      (p/then fabric/set-user-context)))))))))))
+
 (defn connect [{:keys [path peer membersrvc username password]}]
-  (let [path (str (homedir) "/.hyperledger/client/kvstore")]
+  (let [path (str (homedir) "/.hyperledger/client/kvstore")
+        client (fabric/new-client)
+        chain (fabric.chain/new client "chaintool-demo")
+        eventhub (fabric.eventhub/new)]
+
+    (fabric.eventhub/set-peer-addr "grpc://localhost:7053")
+    (fabric.eventhub/connect!)
+
+    (fabric.chain/add-peer chain "grpc://localhost:7051")
+    (fabric.chain/add-orderer chain "grpc://localhost:7050")
 
     ;; ensure our path is created
     (util/mkdirp path)
 
-    ;; configure the chain environment and log in
-    (p/alet [chain (p/await (hlc/new-chain "mychain"))
-             kvstore (p/await (hlc/new-file-kv-store path))
+    (-> (fabric/new-default-kv-store path)
+        (p/then (fn [kvstore]
 
-             ;; configure the chain environment
-             _ (p/await (p/all [(hlc/set-kv-store chain kvstore)
-                                (hlc/set-membersrvc-url chain membersrvc)
-                                (hlc/add-peer chain peer)]))
+                  (fabric/set-state-store client kvstore)
 
-             ;; login using the provided username/password
-             member (p/await (hlc/get-member chain username))
-             _ (p/await (hlc.user/enroll member password))]
-
-            {:chain chain :user member})))
+                  (let [ca (fabric.ca/new "http://localhost:7054")]
+                    (-> (get-user client ca "admin" "adminpw")
+                        (p/then {:client client
+                                 :chain chain
+                                 :eventhub eventhub
+                                 :ca ca}))))))))
 
 (defn deploy [{:keys [args] :as options}]
   (-> options

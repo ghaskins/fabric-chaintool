@@ -1,23 +1,27 @@
-(ns example02.hlc.core
+(ns example02.fabric-sdk.chain
+  (:require-macros [example02.fabric-sdk.macros :as m])
   (:require [cljs.nodejs :as nodejs]
             [promesa.core :as p :include-macros true]))
 
-(def hlc (nodejs/require "hlc"))
+(def peer (nodejs/require "fabric-client/lib/Peer.js"))
+(def orderer (nodejs/require "fabric-client/lib/Orderer.js"))
 
-(defn new-chain [name]
-  (p/do* (.newChain hlc name)))
+(defn new [client name]
+  (.newChain client name))
 
-(defn new-file-kv-store [path]
-  (p/do* (.newFileKeyValStore hlc path)))
+(defn add-peer [chain addr]
+  (let [p (new peer addr)]
+    (.addPeer chain p)))
+
+(defn add-orderer [chain addr]
+  (let [o (new orderer addr)]
+    (.addOrderer chain o)))
 
 (defn set-kv-store [chain store]
   (p/do* (.setKeyValStore chain store)))
 
 (defn set-membersrvc-url [chain url]
   (p/do* (.setMemberServicesUrl chain url)))
-
-(defn add-peer [chain url]
-  (p/do* (.addPeer chain url)))
 
 (defn get-member [chain username]
   (p/promise
