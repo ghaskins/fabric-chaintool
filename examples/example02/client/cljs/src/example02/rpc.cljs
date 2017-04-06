@@ -1,6 +1,6 @@
 (ns example02.rpc
   (:require [cljs.nodejs :as nodejs]
-            [example02.fabric-sdk.user :as fabric.user]
+            [fabric-sdk.user :as fabric.user]
             [promesa.core :as p :include-macros true]))
 
 (defn- post [method {:keys [user id func args] :as options}]

@@ -2,11 +2,11 @@
   (:require [cljs.nodejs :as nodejs]
             [example02.rpc :as rpc]
             [example02.util :as util]
-            [example02.fabric-sdk.core :as fabric]
-            [example02.fabric-sdk.chain :as fabric.chain]
-            [example02.fabric-sdk.eventhub :as fabric.eventhub]
-            [example02.fabric-sdk.ca :as fabric.ca]
-            [example02.fabric-sdk.user :as fabric.user]
+            [fabric-sdk.core :as fabric]
+            [fabric-sdk.chain :as fabric.chain]
+            [fabric-sdk.eventhub :as fabric.eventhub]
+            [fabric-sdk.ca :as fabric.ca]
+            [fabric-sdk.user :as fabric.user]
             [promesa.core :as p :include-macros true]))
 
 (def pb (nodejs/require "protobufjs"))
