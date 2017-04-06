@@ -8,8 +8,8 @@
 (defn new [username client]
   (new user username client))
 
-(defn enrolled? [user]y
-  (.isEnrolled user))
+(defn enrolled? [user]
+  (and user (.isEnrolled user)))
 
 (defn set-enrollment [user enrollment]
   (m/pwrap (.setEnrollment user enrollment.key enrollment.certificate)))

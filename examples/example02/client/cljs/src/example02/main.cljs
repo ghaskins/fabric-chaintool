@@ -8,8 +8,10 @@
 (nodejs/enable-util-print!)
 
 (def _commands
-  [["deploy"
-    {:fn core/deploy
+  [["install"
+    {:fn core/install}]
+   ["instantiate"
+    {:fn core/instantiate
      :default-args #js {:partyA #js {:entity "foo"
                                      :value 100}
                         :partyB #js {:entity "bar"
@@ -77,11 +79,16 @@
       (let [desc (commands command)
             _args (if (nil? args) (:default-args desc) (.parse js/JSON args))]
 
-        (p/alet [{:keys [chain user]} (p/await (core/connect options))]
+        (p/alet [{:keys [eventhub] :as context} (p/await (core/connect options))
+                 params (-> options
+                            (assoc :args _args)
+                            (merge context))]
 
                 (println (str "Running " command "(" (.stringify js/JSON _args) ")"))
 
                 ;; Run the subcommand funtion
-                ((:fn desc) (assoc options :id id :args _args :chain chain :user user)))))))
+                (-> ((:fn desc) params)
+                    (p/catch #(println "Error:" %))
+                    (p/then (fabric.eventhub/disconnect! eventhub))))))))
 
 (set! *main-cli-fn* -main)

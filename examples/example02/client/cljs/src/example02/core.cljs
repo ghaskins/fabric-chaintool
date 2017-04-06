@@ -10,7 +10,6 @@
             [promesa.core :as p :include-macros true]))
 
 (def pb (nodejs/require "protobufjs"))
-(def homedir (nodejs/require "homedir"))
 
 (def builder (.newBuilder pb))
 
@@ -25,7 +24,7 @@
 (def get-user [client ca username password]
   (-> (fabric/get-user-context client username)
       (p/then (fn [user]
-                (if (and user (fabric.user/enrolled? user))
+                (if (fabric.user/enrolled? user)
                   user
                   ;;else
                   (-> (fabric.ca/enroll ca username password)
@@ -35,8 +34,7 @@
                                       (p/then fabric/set-user-context)))))))))))
 
 (defn connect [{:keys [path peer membersrvc username password]}]
-  (let [path (str (homedir) "/.hyperledger/client/kvstore")
-        client (fabric/new-client)
+  (let [client (fabric/new-client)
         chain (fabric.chain/new client "chaintool-demo")
         eventhub (fabric.eventhub/new)]
 
@@ -46,10 +44,7 @@
     (fabric.chain/add-peer chain "grpc://localhost:7051")
     (fabric.chain/add-orderer chain "grpc://localhost:7050")
 
-    ;; ensure our path is created
-    (util/mkdirp path)
-
-    (-> (fabric/new-default-kv-store path)
+    (-> (fabric/new-default-kv-store ".hfc-kvstore")
         (p/then (fn [kvstore]
 
                   (fabric/set-state-store client kvstore)
@@ -61,11 +56,15 @@
                                  :eventhub eventhub
                                  :ca ca}))))))))
 
-(defn deploy [{:keys [args] :as options}]
+(defn install [{:keys [args] :as options}]
+  (-> (rpc/install options)
+      (p/then #(println "Success!"))))
+
+(defn instantiate [{:keys [args] :as options}]
   (-> options
       (assoc :func "init"
              :args (init.Init. args))
-      rpc/deploy
+      rpc/instantiate
       (p/then #(println "Success!"))))
 
 (defn make-payment [{:keys [args] :as options}]
