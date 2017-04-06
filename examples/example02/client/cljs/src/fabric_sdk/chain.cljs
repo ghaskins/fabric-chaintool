@@ -23,6 +23,9 @@
 (defn set-membersrvc-url [chain url]
   (p/do* (.setMemberServicesUrl chain url)))
 
+(defn build-txnid [chain nonce user]
+  (.buildTransactionID chain nonce user))
+
 (defn get-member [chain username]
   (p/promise
    (fn [resolve reject]

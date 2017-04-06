@@ -20,3 +20,6 @@
 
 (defn set-user-context [client user]
   (m/pwrap (.setUserContext client user)))
+
+(defn get-nonce []
+  (.getNonce utils))
