@@ -1,4 +1,4 @@
-(ns example02.fabric-sdk.macros
+(ns fabric-sdk.macros
     (:require [promesa.core :as promesa]))
 
 (defmacro pwrap

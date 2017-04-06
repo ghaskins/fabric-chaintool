@@ -1,5 +1,5 @@
-(ns example02.fabric-sdk.chain
-  (:require-macros [example02.fabric-sdk.macros :as m])
+(ns fabric-sdk.chain
+  (:require-macros [fabric-sdk.macros :as m])
   (:require [cljs.nodejs :as nodejs]
             [promesa.core :as p :include-macros true]))
 
