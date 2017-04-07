@@ -1,32 +1,30 @@
 (ns example02.rpc
   (:require [cljs.nodejs :as nodejs]
             [fabric-sdk.core :as fabric]
-            [fabric-sdk.user :as fabric.user]
+            [fabric-sdk.chain :as fabric.chain]
             [promesa.core :as p :include-macros true]))
 
-(defn- create-base-request [{:keys [chain peers id user]}]
+(defn- create-base-request [{:keys [chain peers chainid id user]}]
   (let [nonce (fabric/get-nonce)
         txid (fabric.chain/build-txnid chain nonce user)]
 
-    #js {:chaincodeType "car"
-         :targets peers
-         :chainId "testchainid"
-         :chaincodeId id
-         :txId txid
-         :nonce nonce}))
+    {:chaincodeType "car"
+     :targets peers
+     :chainId chainid
+     :chaincodeId id
+     :txId txid
+     :nonce nonce}))
 
-(defn- post [method {:keys [user id func args] :as options}]
-  (let [request #js {:chaincodeID id
-                     :fcn func
-                     :args #js [(.toBase64 args)]}]
+(defn- create-request [{:keys [user fcn args] :as options}]
+  (-> (create-base-request options)
+      (assoc :fcn fcn :args #js [(.toBuffer args)])))
 
-    (p/chain (method user request) str)))
+(defn- send-install [{:keys [user path version] :as options}]
+  (let [request #js (-> (create-base-request options)
+                        (assoc :chaincodeVersion version)
+                        (when path (assoc :chaincodePath path)))]
 
-(defn deploy [args]
-  (post fabric.user/deploy args))
+    (when (not path)
+      (fabric.chain/set-dev-mode true))
 
-(defn invoke [args]
-  (post fabric.user/invoke args))
-
-(defn query [args]
-  (post fabric.user/query args))
+    (fabric.chain/send-install-proposal request)))

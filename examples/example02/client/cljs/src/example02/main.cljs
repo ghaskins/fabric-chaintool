@@ -32,15 +32,27 @@
 (defn print-commands [] (->> commands keys vec print-str))
 
 (def options
-  [[nil "--peer URL" "Peer URL"
-    :default "grpc://localhost:30303"]
-   [nil "--membersrvc URL" "Member services URL"
-    :default "grpc://localhost:50051"]
+  [[nil "--peer HOST" "Peer HOST"
+    :default "localhost"]
+   [nil "--peer-port PORT"
+    :default 7051
+    :parse-fn #(js/parseInt %)
+    :validate [#(< 0 % 65535) "Must be between 1 and 65535"]]
+   [nil "--event-port PORT"
+    :default 7053
+    :parse-fn #(js/parseInt %)
+    :validate [#(< 0 % 65535) "Must be between 1 and 65535"]]
+   [nil "--orderer URL" "Orderer URL"
+    :default "grpc://localhost:7050"]
+   [nil "--ca URL" "CA URL"
+    :default "grpc://localhost:7054"]
    [nil "--username USER" "Username"
-    :default "test_user0"]
+    :default "admin"]
    [nil "--password PASS" "Password"
-    :default "MS9qrN8hFjlE"]
+    :default "adminpw"]
    ["-i" "--id ID" "ChaincodeID as a path/url/name"]
+   [nil "--chainid ID" "ChainID"
+    :default "testchainid"]
    ["-c" "--command CMD" (str "One of " (print-commands))
     :default "check-balance"
     :validate [#(contains? commands %) (str "Supported commands: " (print-commands))]]
@@ -79,7 +91,7 @@
       (let [desc (commands command)
             _args (if (nil? args) (:default-args desc) (.parse js/JSON args))]
 
-        (p/alet [{:keys [eventhub] :as context} (p/await (core/connect options))
+        (p/alet [{:keys [eventhub] :as context} (p/await (core/connect! options))
                  params (-> options
                             (assoc :args _args)
                             (merge context))]

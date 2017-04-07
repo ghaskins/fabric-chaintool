@@ -21,43 +21,52 @@
 (def init (loadproto "appinit"))
 (def app (loadproto "org.hyperledger.chaincode.example02"))
 
-(def get-user [client ca username password]
+(defn- enroll [client ca username password]
+  (-> (fabric.ca/enroll ca username password)
+      (p/then (fn [enrollment]
+                (let [user (fabric.user/new client username)]
+                  (-> (fabric.user/set-enrollment user enrollment)
+                      (p/then #(fabric/set-user-context client user))))))))
+
+(defn- get-user [client ca username password]
   (-> (fabric/get-user-context client username)
       (p/then (fn [user]
                 (if (fabric.user/enrolled? user)
-                  user
-                  ;;else
-                  (-> (fabric.ca/enroll ca username password)
-                      (p/then (fn [enrollment]
-                                (let [user (fabric.user/new client username)]
-                                  (-> (fabric.user/set-enrollment enrollment)
-                                      (p/then fabric/set-user-context)))))))))))
 
-(defn connect [{:keys [path peer membersrvc username password]}]
+                  ;; either we found an enrolled user cached in the store
+                  user
+
+                  ;;else, we need to enroll them now
+                  (enroll client ca username password))))))
+
+(defn- make-url [host port]
+  (str "grpc://" host ":" port))
+
+(defn connect! [{:keys [peer peer-port event-port ca username password]}]
   (let [client (fabric/new-client)
         chain (fabric.chain/new client "chaintool-demo")
         eventhub (fabric.eventhub/new)]
 
-    (fabric.eventhub/set-peer-addr "grpc://localhost:7053")
-    (fabric.eventhub/connect!)
+    (fabric.eventhub/set-peer-addr eventhub (make-url peer event-port))
+    (fabric.eventhub/connect! eventhub)
 
-    (fabric.chain/add-peer chain "grpc://localhost:7051")
-    (fabric.chain/add-orderer chain "grpc://localhost:7050")
+    (fabric.chain/add-peer chain (make-url peer peer-port))
+    (fabric.chain/add-orderer chain orderer)
 
     (-> (fabric/new-default-kv-store ".hfc-kvstore")
         (p/then (fn [kvstore]
 
                   (fabric/set-state-store client kvstore)
 
-                  (let [ca (fabric.ca/new "http://localhost:7054")]
-                    (-> (get-user client ca "admin" "adminpw")
+                  (let [ca-instance (fabric.ca/new ca)]
+                    (-> (get-user client ca-instance username password)
                         (p/then {:client client
                                  :chain chain
                                  :eventhub eventhub
-                                 :ca ca}))))))))
+                                 :ca ca-instance}))))))))
 
 (defn install [{:keys [args] :as options}]
-  (-> (rpc/install options)
+  (-> (rpc/send-install options)
       (p/then #(println "Success!"))))
 
 (defn instantiate [{:keys [args] :as options}]
