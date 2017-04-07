@@ -68,33 +68,33 @@
 (defn disconnect! [{:keys [eventhub]}]
   (fabric.eventhub/disconnect! eventhub))
 
-(defn install [{:keys [args] :as options}]
-  (-> (rpc/send-install options)
+(defn install [{:keys [args] :as context}]
+  (-> (rpc/send-install context)
       (p/then #(println "Success!"))))
 
-(defn instantiate [{:keys [args] :as options}]
-  (-> options
+(defn instantiate [{:keys [args] :as context}]
+  (-> context
       (assoc :func "init"
              :args (init.Init. args))
       rpc/send-instantiate
       (p/then #(println "Success!"))))
 
-(defn make-payment [{:keys [args] :as options}]
-  (-> options
+(defn make-payment [{:keys [args] :as context}]
+  (-> context
       (assoc :func "org.hyperledger.chaincode.example02/fcn/1"
              :args (app.PaymentParams. args))
       rpc/send-transaction
       (p/then #(println "Success!"))))
 
-(defn delete-account [{:keys [args] :as options}]
-  (-> options
+(defn delete-account [{:keys [args] :as context}]
+  (-> context
       (assoc :func "org.hyperledger.chaincode.example02/fcn/2"
              :args (app.Entity. args))
       rpc/send-transaction
       (p/then #(println "Success!"))))
 
-(defn check-balance [{:keys [args] :as options}]
-  (-> options
+(defn check-balance [{:keys [args] :as context}]
+  (-> context
       (assoc :func "org.hyperledger.chaincode.example02/fcn/3"
              :args (app.Entity. args))
       rpc/send-transaction
