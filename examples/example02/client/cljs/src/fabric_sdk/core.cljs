@@ -10,7 +10,7 @@
   (new hfc))
 
 (defn new-default-kv-store [path]
-  (m/pwrap (.newDefaultKeyValStore hfc #js {:path path})))
+  (m/pwrap (.newDefaultKeyValueStore hfc #js {:path path})))
 
 (defn set-state-store [client store]
   (.setStateStore client store))
