@@ -45,7 +45,7 @@
    [nil "--orderer URL" "Orderer URL"
     :default "grpc://localhost:7050"]
    [nil "--ca URL" "CA URL"
-    :default "grpc://localhost:7054"]
+    :default "http://localhost:7054"]
    [nil "--username USER" "Username"
     :default "admin"]
    [nil "--password PASS" "Password"
