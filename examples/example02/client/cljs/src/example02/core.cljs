@@ -80,21 +80,21 @@
 
 (defn make-payment [{:keys [args] :as options}]
   (-> options
-      (assoc :func "org.hyperledger.chaincode.example02/txn/1"
+      (assoc :func "org.hyperledger.chaincode.example02/fcn/1"
              :args (app.PaymentParams. args))
       rpc/send-transaction
       (p/then #(println "Success!"))))
 
 (defn delete-account [{:keys [args] :as options}]
   (-> options
-      (assoc :func "org.hyperledger.chaincode.example02/txn/2"
+      (assoc :func "org.hyperledger.chaincode.example02/fcn/2"
              :args (app.Entity. args))
       rpc/send-transaction
       (p/then #(println "Success!"))))
 
 (defn check-balance [{:keys [args] :as options}]
   (-> options
-      (assoc :func "org.hyperledger.chaincode.example02/query/1"
+      (assoc :func "org.hyperledger.chaincode.example02/fcn/3"
              :args (app.Entity. args))
       rpc/send-transaction
       (p/then #(println "Success: Balance =" (->> % app.BalanceResult.decode64 .-balance)))))
