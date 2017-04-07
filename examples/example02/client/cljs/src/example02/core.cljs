@@ -41,7 +41,7 @@
 (defn- make-url [host port]
   (str "grpc://" host ":" port))
 
-(defn connect! [{:keys [peer peer-port event-port orderer ca username password]}]
+(defn connect! [{:keys [peer peer-port event-port orderer ca username password] :as options}]
   (let [client (fabric/new-client)
         chain (fabric.chain/new client "chaintool-demo")
         eventhub (fabric.eventhub/new)]
@@ -59,10 +59,11 @@
 
                   (let [ca-instance (fabric.ca/new ca)]
                     (-> (get-user client ca-instance username password)
-                        (p/then {:client client
-                                 :chain chain
-                                 :eventhub eventhub
-                                 :ca ca-instance}))))))))
+                        (p/then #(assoc options
+                                        :client client
+                                        :chain chain
+                                        :eventhub eventhub
+                                        :ca ca-instance)))))))))
 
 (defn disconnect! [{:keys [eventhub]}]
   (fabric.eventhub/disconnect! eventhub))
