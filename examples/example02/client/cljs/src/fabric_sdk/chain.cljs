@@ -22,3 +22,6 @@
 
 (defn set-dev-mode [chain enabled]
   (.setDevMode chain enabled))
+
+(defn send-install-proposal [chain request]
+  (m/pwrap (.sendInstallProposal chain request)))

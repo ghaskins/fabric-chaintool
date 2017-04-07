@@ -64,6 +64,9 @@
                                  :eventhub eventhub
                                  :ca ca-instance}))))))))
 
+(defn disconnect! [{:keys [eventhub]}]
+  (fabric.eventhub/disconnect! eventhub))
+
 (defn install [{:keys [args] :as options}]
   (-> (rpc/send-install options)
       (p/then #(println "Success!"))))

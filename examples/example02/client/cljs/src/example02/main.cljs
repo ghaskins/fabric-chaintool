@@ -91,7 +91,7 @@
       (let [desc (commands command)
             _args (if (nil? args) (:default-args desc) (.parse js/JSON args))]
 
-        (p/alet [{:keys [eventhub] :as context} (p/await (core/connect! options))
+        (p/alet [context (p/await (core/connect! options))
                  params (-> options
                             (assoc :args _args)
                             (merge context))]
@@ -101,6 +101,6 @@
                 ;; Run the subcommand funtion
                 (-> ((:fn desc) params)
                     (p/catch #(println "Error:" %))
-                    (p/then (fabric.eventhub/disconnect! eventhub))))))))
+                    (p/then (core/disconnect! context))))))))
 
 (set! *main-cli-fn* -main)
