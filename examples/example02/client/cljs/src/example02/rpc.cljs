@@ -19,12 +19,17 @@
   (-> (create-base-request options)
       (assoc :fcn fcn :args #js [(.toBuffer args)])))
 
-(defn- send-install [{:keys [user path version] :as options}]
-  (let [request #js (-> (create-base-request options)
-                        (assoc :chaincodeVersion version)
-                        (when path (assoc :chaincodePath path)))]
+(defn send-install [{:keys [user path version] :as options}]
+  (let [request (-> (create-base-request options)
+                    (assoc :chaincodeVersion version
+                           :chaincodePath path)
+                    clj->js)]
 
     (when (not path)
       (fabric.chain/set-dev-mode true))
 
     (fabric.chain/send-install-proposal request)))
+
+(defn send-instantiate [& args])
+(defn send-transaction [& args])
+(defn send-query [& args])

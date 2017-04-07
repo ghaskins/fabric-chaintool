@@ -1,7 +1,6 @@
 (ns example02.core
   (:require [cljs.nodejs :as nodejs]
             [example02.rpc :as rpc]
-            [example02.util :as util]
             [fabric-sdk.core :as fabric]
             [fabric-sdk.chain :as fabric.chain]
             [fabric-sdk.eventhub :as fabric.eventhub]
@@ -42,7 +41,7 @@
 (defn- make-url [host port]
   (str "grpc://" host ":" port))
 
-(defn connect! [{:keys [peer peer-port event-port ca username password]}]
+(defn connect! [{:keys [peer peer-port event-port orderer ca username password]}]
   (let [client (fabric/new-client)
         chain (fabric.chain/new client "chaintool-demo")
         eventhub (fabric.eventhub/new)]
@@ -73,26 +72,26 @@
   (-> options
       (assoc :func "init"
              :args (init.Init. args))
-      rpc/instantiate
+      rpc/send-instantiate
       (p/then #(println "Success!"))))
 
 (defn make-payment [{:keys [args] :as options}]
   (-> options
       (assoc :func "org.hyperledger.chaincode.example02/txn/1"
              :args (app.PaymentParams. args))
-      rpc/invoke
+      rpc/send-transaction
       (p/then #(println "Success!"))))
 
 (defn delete-account [{:keys [args] :as options}]
   (-> options
       (assoc :func "org.hyperledger.chaincode.example02/txn/2"
              :args (app.Entity. args))
-      rpc/invoke
+      rpc/send-transaction
       (p/then #(println "Success!"))))
 
 (defn check-balance [{:keys [args] :as options}]
   (-> options
       (assoc :func "org.hyperledger.chaincode.example02/query/1"
              :args (app.Entity. args))
-      rpc/query
+      rpc/send-transaction
       (p/then #(println "Success: Balance =" (->> % app.BalanceResult.decode64 .-balance)))))
