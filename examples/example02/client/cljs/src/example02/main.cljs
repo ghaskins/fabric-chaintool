@@ -46,6 +46,8 @@
     :default "grpc://localhost:7050"]
    [nil "--ca URL" "CA URL"
     :default "http://localhost:7054"]
+   [nil "--mspid ID" "MSP ID"
+    :default "Org1MSP"]
    [nil "--username USER" "Username"
     :default "admin"]
    [nil "--password PASS" "Password"

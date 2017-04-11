@@ -20,14 +20,14 @@
 (def init (loadproto "appinit"))
 (def app (loadproto "org.hyperledger.chaincode.example02"))
 
-(defn- enroll [client ca username password]
+(defn- enroll [client ca mspid username password]
   (-> (fabric.ca/enroll ca username password)
       (p/then (fn [enrollment]
                 (let [user (fabric.user/new client username)]
-                  (-> (fabric.user/set-enrollment user enrollment)
+                  (-> (fabric.user/set-enrollment user enrollment mspid)
                       (p/then #(fabric/set-user-context client user))))))))
 
-(defn- get-user [client ca username password]
+(defn- get-user [client ca mspid username password]
   (-> (fabric/get-user-context client username)
       (p/then (fn [user]
                 (if (fabric.user/enrolled? user)
@@ -41,7 +41,15 @@
 (defn- make-url [host port]
   (str "grpc://" host ":" port))
 
-(defn connect! [{:keys [peer peer-port event-port orderer ca username password] :as options}]
+(defn connect! [{:keys [peer
+                        peer-port
+                        event-port
+                        orderer
+                        ca
+                        mspid
+                        username
+                        password] :as options}]
+
   (let [client (fabric/new-client)
         chain (fabric.chain/new client "chaintool-demo")
         eventhub (fabric.eventhub/new)]
@@ -58,7 +66,7 @@
                   (fabric/set-state-store client kvstore)
 
                   (let [ca-instance (fabric.ca/new ca)]
-                    (-> (get-user client ca-instance username password)
+                    (-> (get-user client ca-instance mspid username password)
                         (p/then #(assoc options
                                         :client client
                                         :chain chain

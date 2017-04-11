@@ -11,6 +11,5 @@
 (defn enrolled? [user]
   (and user (.isEnrolled user)))
 
-(defn set-enrollment [user enrollment]
-  (println "enrollment:" enrollment)
-  (m/pwrap (.setEnrollment user enrollment.key enrollment.certificate)))
+(defn set-enrollment [user enrollment mspid]
+  (m/pwrap (.setEnrollment user enrollment.key enrollment.certificate mspid)))

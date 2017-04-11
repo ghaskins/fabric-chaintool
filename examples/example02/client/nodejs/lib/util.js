@@ -74,7 +74,8 @@ module.exports = {
                         console.log("enrollment");
                         var member = new User(username, client);
                         return member.setEnrollment(enrollment.key,
-                                                    enrollment.certificate)
+                                                    enrollment.certificate,
+                                                   "DEFAULT")
                             .then(() => {
                                 return client.setUserContext(member);
                             });

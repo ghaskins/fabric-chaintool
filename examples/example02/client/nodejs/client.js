@@ -22,6 +22,8 @@ var chain;
 var peer;
 var eventhub;
 
+var chainId = 'testchainid';
+
 function createBaseRequest(user) {
     var nonce = hfcutils.getNonce();
     var tx_id = chain.buildTransactionID(nonce, user);
@@ -30,7 +32,7 @@ function createBaseRequest(user) {
     var request = {
         chaincodeType: 'car',
         targets: [peer],
-        chainId: 'testchainid',
+        chainId: chainId,
         chaincodeId: 'mycc',
         txId: tx_id,
         nonce: nonce
@@ -50,7 +52,7 @@ function createRequest(user, fcn, args) {
 
 function connect() {
     var client = new hfc();
-    chain = client.newChain('chaintool-demo');
+    chain = client.newChain(chainId);
 
     eventhub = new EventHub();
     eventhub.setPeerAddr('grpc://localhost:7053');
@@ -67,6 +69,12 @@ function connect() {
             var ca = new CA('http://localhost:7054');
 
             return utils.getUser(client, ca, 'admin', 'adminpw');
+        })
+        .then((user) => {
+            return chain.initialize()
+                .then(() => {
+                    return user;
+                });
         });
 }
 
