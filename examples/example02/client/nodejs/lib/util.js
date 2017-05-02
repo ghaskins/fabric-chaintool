@@ -60,13 +60,12 @@ module.exports = {
     },
 
     getUser: (client, cop, username, password) => {
-        return client.getUserContext(username)
+        return client.getUserContext(username, true)
             .then((user) => {
                 if (user && user.isEnrolled()) {
                     return Promise.resolve(user);
                 } else {
                     // need to enroll it with COP server
-                    console.log("enrolling");
                     return cop.enroll({
                         enrollmentID: username,
                         enrollmentSecret: password

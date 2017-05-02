@@ -9,6 +9,8 @@ var init = builder.build("appinit");
 pb.loadProtoFile("./protos/org.hyperledger.chaincode.example02.proto", builder);
 var app = builder.build("org.hyperledger.chaincode.example02");
 
+var path = require('path');
+
 var hfc = require('fabric-client');
 var hfcutils = require('fabric-client/lib/utils.js');
 var utils = require('./lib/util.js');
@@ -18,6 +20,9 @@ var EventHub = require('fabric-client/lib/EventHub.js');
 var CA = require('fabric-ca-client');
 var User = require('fabric-client/lib/User.js');
 
+hfc.addConfigFile(path.join(__dirname, './config.json'));
+
+var client;
 var chain;
 var peer;
 var eventhub;
@@ -26,7 +31,7 @@ var chainId = 'testchainid';
 
 function createBaseRequest(user) {
     var nonce = hfcutils.getNonce();
-    var tx_id = chain.buildTransactionID(nonce, user);
+    var tx_id = hfc.buildTransactionID(nonce, user);
 
     // send proposal to endorser
     var request = {
@@ -51,7 +56,7 @@ function createRequest(user, fcn, args) {
 }
 
 function connect() {
-    var client = new hfc();
+    client = new hfc();
     chain = client.newChain(chainId);
 
     eventhub = new EventHub();
@@ -73,6 +78,7 @@ function connect() {
         .then((user) => {
             return chain.initialize()
                 .then(() => {
+
                     return user;
                 });
         });
@@ -98,7 +104,7 @@ function sendInstall(user, path, version) {
     request.chaincodeVersion = "1";
 
     // send proposal to endorser
-    return chain.sendInstallProposal(request);
+    return client.installChaincode(request);
 }
 
 function sendInstantiate(user, args) {
