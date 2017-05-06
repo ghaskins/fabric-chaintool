@@ -20,14 +20,12 @@ var EventHub = require('fabric-client/lib/EventHub.js');
 var CA = require('fabric-ca-client');
 var User = require('fabric-client/lib/User.js');
 
-hfc.addConfigFile(path.join(__dirname, './config.json'));
-
 var client;
 var chain;
 var peer;
 var eventhub;
 
-var chainId = 'testchainid';
+var chainId = 'mychannel';
 
 function createBaseRequest(user) {
     var nonce = hfcutils.getNonce();
@@ -55,25 +53,29 @@ function createRequest(user, fcn, args) {
     return request;
 }
 
-function connect() {
+function makeUrl(host, port) {
+    return 'grpc:' + host + ':' + port;
+ }
+
+function connect(config) {
     client = new hfc();
     chain = client.newChain(chainId);
 
     eventhub = new EventHub();
-    eventhub.setPeerAddr('grpc://localhost:7053');
+    eventhub.setPeerAddr(makeUrl(config.peer.address, config.peer.events));
     eventhub.connect();
 
-    peer = new Peer('grpc://localhost:7051');
-    var orderer = new Orderer('grpc://localhost:7050');
+    peer = new Peer(makeUrl(config.peer.address, config.peer.port));
+    var orderer = new Orderer(config.orderer);
 
     chain.addOrderer(orderer);
     chain.addPeer(peer);
 
     return utils.setStateStore(client, ".hfc-kvstore")
         .then(() => {
-            var ca = new CA('http://localhost:7054');
+            var ca = new CA(config.ca);
 
-            return utils.getUser(client, ca, 'admin', 'adminpw');
+            return utils.getUser(client, ca, config.username, config.password);
         })
         .then((user) => {
             return chain.initialize()
@@ -149,6 +151,19 @@ function checkBalance(user, args) {
         });
 }
 
+var defaultConfig = {
+    ca: 'http://172.18.0.2:7054',
+    orderer: 'grpc://172.18.0.3:7050',
+    peer: {
+        address: '172.18.0.4',
+        port: 7051,
+        events: 7053
+    },
+    mspid: 'Org1MSP',
+    username: 'admin',
+    password: 'adminpw'
+};
+
 program
     .version('0.0.1');
 
@@ -157,7 +172,7 @@ program
     .option("-p, --path <path>", "Path to chaincode.car")
     .option("-v, --version <version>", "Version of chaincode to install")
     .action((options) => {
-        return connect()
+        return connect(defaultConfig)
             .then((user) => {
                 return sendInstall(user, options.path, options.version);
             })
@@ -172,7 +187,7 @@ program
 program
     .command('instantiate')
     .action(() => {
-        return connect()
+        return connect(defaultConfig)
             .then((user) => {
                 return sendInstantiate(user,
                                        {
@@ -191,7 +206,7 @@ program
 program
     .command('makepayment <partySrc> <partyDst> <amount>')
     .action((partySrc, partyDst, amount) => {
-        return connect()
+        return connect(defaultConfig)
             .then((user) => {
                 return makePayment(user,
                                    {
@@ -211,7 +226,7 @@ program
 program
     .command('checkbalance <id>')
     .action((id) => {
-        return connect()
+        return connect(defaultConfig)
             .then((user) => {
                 return checkBalance(user, {'id':id});
             })
