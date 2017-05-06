@@ -61,10 +61,6 @@ function connect(config) {
     client = new hfc();
     chain = client.newChain(chainId);
 
-    eventhub = new EventHub();
-    eventhub.setPeerAddr(makeUrl(config.peer.address, config.peer.events));
-    eventhub.connect();
-
     peer = new Peer(makeUrl(config.peer.address, config.peer.port));
     var orderer = new Orderer(config.orderer);
 
@@ -78,6 +74,10 @@ function connect(config) {
             return utils.getUser(client, ca, config.username, config.password);
         })
         .then((user) => {
+            eventhub = new EventHub(client);
+            eventhub.setPeerAddr(makeUrl(config.peer.address, config.peer.events));
+            eventhub.connect();
+
             return chain.initialize()
                 .then(() => {
 
