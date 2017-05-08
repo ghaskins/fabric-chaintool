@@ -59,7 +59,7 @@ module.exports = {
         });
     },
 
-    getUser: (client, cop, username, password) => {
+    getUser: (client, cop, mspid, username, password) => {
         return client.getUserContext(username, true)
             .then((user) => {
                 if (user && user.isEnrolled()) {
@@ -70,11 +70,10 @@ module.exports = {
                         enrollmentID: username,
                         enrollmentSecret: password
                     }).then((enrollment) => {
-                        console.log("enrollment");
                         var member = new User(username, client);
                         return member.setEnrollment(enrollment.key,
                                                     enrollment.certificate,
-                                                   "DEFAULT")
+                                                    mspid)
                             .then(() => {
                                 return client.setUserContext(member);
                             });

@@ -71,7 +71,7 @@ function connect(config) {
         .then(() => {
             var ca = new CA(config.ca);
 
-            return utils.getUser(client, ca, config.username, config.password);
+            return utils.getUser(client, ca, config.mspid, config.username, config.password);
         })
         .then((user) => {
             eventhub = new EventHub(client);
