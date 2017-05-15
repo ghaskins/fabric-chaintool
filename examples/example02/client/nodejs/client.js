@@ -18,7 +18,6 @@ var utils = require('./lib/util.js');
 var Peer = require('fabric-client/lib/Peer.js');
 var Orderer = require('fabric-client/lib/Orderer.js');
 var EventHub = require('fabric-client/lib/EventHub.js');
-var CA = require('fabric-ca-client');
 var User = require('fabric-client/lib/User.js');
 
 var client;
@@ -56,10 +55,6 @@ function createRequest(user, fcn, args) {
     return request;
 }
 
-function makeUrl(host, port) {
-    return 'grpc:' + host + ':' + port;
- }
-
 function connect() {
     client = new hfc();
     chain = client.newChain(chainId);
@@ -78,13 +73,18 @@ function connect() {
 
     return utils.setStateStore(client, ".hfc-kvstore")
         .then(() => {
-            var ca = new CA(config.ca.url);
-
-            return utils.getUser(client, ca, config.mspid, config.username, config.password);
+            var userSpec = {
+                username: config.identity.principal,
+                mspid: config.identity.mspid,
+                cryptoContent: {
+                    privateKeyPEM: config.identity.privatekey,
+                    signedCertPEM: config.identity.certificate
+                }};
+            return client.createUser(userSpec);
         })
         .then((user) => {
             eventhub = new EventHub(client);
-            eventhub.setPeerAddr(makeUrl(config.peer.address, config.peer.events));
+            eventhub.setPeerAddr(config.peers[0].events);
             eventhub.connect();
 
             return chain.initialize()
