@@ -22,7 +22,7 @@ var User = require('fabric-client/lib/User.js');
 
 var client;
 var chain;
-var peer;
+var peers = [];
 var eventhub;
 
 var chainId = 'mychannel';
@@ -36,7 +36,7 @@ function createBaseRequest(user) {
     // send proposal to endorser
     var request = {
         chaincodeType: 'car',
-        targets: [peer],
+        targets: peers,
         chainId: chainId,
         chaincodeId: 'mycc',
         txId: tx_id,
@@ -68,6 +68,7 @@ function connect() {
             pem: config.ca.certificate,
             'ssl-target-name-override': p.hostname
         });
+        peers.push(peer);
         chain.addPeer(peer);
     }
 
