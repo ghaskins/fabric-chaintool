@@ -86,8 +86,12 @@ function connect() {
             return client.createUser(userSpec);
         })
         .then((user) => {
+            var peer1 = config.peers[0]
             eventhub = new EventHub(client);
-            eventhub.setPeerAddr(config.peers[0].events);
+            eventhub.setPeerAddr(peer1.events, {
+                pem: config.ca.certificate,
+                'ssl-target-name-override': peer1.hostname
+            });
             eventhub.connect();
 
             return chain.initialize()
