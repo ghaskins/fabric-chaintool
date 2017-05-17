@@ -59,8 +59,10 @@ function connect() {
     client = new hfc();
     chain = client.newChain(chainId);
 
-    var orderer = new Orderer(config.orderer);
-    chain.addOrderer(orderer);
+    chain.addOrderer(client.newOrderer(config.orderer.url, {
+        pem: config.orderer.ca,
+        'ssl-target-name-override': config.orderer.hostname
+    }));
 
     for (var i in config.peers) {
         var p = config.peers[i]
