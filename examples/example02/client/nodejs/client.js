@@ -57,26 +57,27 @@ function createRequest(user, fcn, args) {
 
 function connect() {
     client = new hfc();
-    chain = client.newChain(chainId);
-
-    chain.addOrderer(client.newOrderer(config.orderer.url, {
-        pem: config.orderer.ca,
-        'ssl-target-name-override': config.orderer.hostname
-    }));
-
-    for (var i in config.peers) {
-        var p = config.peers[i]
-        peer = client.newPeer(p.api, {
-            pem: config.ca.certificate,
-            'ssl-target-name-override': p.hostname,
-            'request-timeout': 120000
-        });
-        peers.push(peer);
-        chain.addPeer(peer);
-    }
 
     return utils.setStateStore(client, ".hfc-kvstore")
         .then(() => {
+            chain = client.newChain(chainId);
+
+            chain.addOrderer(client.newOrderer(config.orderer.url, {
+                pem: config.orderer.ca,
+                'ssl-target-name-override': config.orderer.hostname
+            }));
+
+            for (var i in config.peers) {
+                var p = config.peers[i]
+                peer = client.newPeer(p.api, {
+                    pem: config.ca.certificate,
+                    'ssl-target-name-override': p.hostname,
+                    'request-timeout': 120000
+                });
+                peers.push(peer);
+                chain.addPeer(peer);
+            }
+
             var userSpec = {
                 username: config.identity.principal,
                 mspid: config.identity.mspid,
