@@ -68,7 +68,8 @@ function connect() {
         var p = config.peers[i]
         peer = client.newPeer(p.api, {
             pem: config.ca.certificate,
-            'ssl-target-name-override': p.hostname
+            'ssl-target-name-override': p.hostname,
+            'request-timeout': 120000
         });
         peers.push(peer);
         chain.addPeer(peer);
@@ -133,7 +134,7 @@ function sendInstantiate(user, args) {
     // send proposal to endorser
     return chain.sendInstantiateProposal(request)
         .then((response) => {
-            return utils.processResponse(chain, eventhub, request, response, 60000);
+            return utils.processResponse(chain, eventhub, request, response, 120000);
         });
 }
 
