@@ -75,7 +75,7 @@
       (let [desc (commands command)
             _args (if (nil? args) (:default-args desc) (.parse js/JSON args))
             _config (-> (.sync readyaml config)
-                        js->clj)]
+                        (js->clj :keywordize-keys true))]
 
         (p/alet [context (p/await (core/connect! (assoc options :config _config)))
                  params (-> options

@@ -29,16 +29,15 @@
                     :cryptoContent #js {:privateKeyPEM (:privatekey identity)
                                         :signedCertPEM (:certificate identity)}}]
 
-    (fabric.chain/create-user client config)))
+    (fabric/create-user client config)))
 
 (defn connect! [{:keys [config id channel] :as options}]
 
-  (println "config:" config)
-  
-  (let [client (fabric/new-client)]
+  (let [client (fabric/new-client)
+        identity (:identity config)]
 
     (-> (set-state-store client ".hfc-kvstore")
-        (p/then #(create-user client (:identity config)))
+        (p/then #(create-user client identity))
         (p/then (fn [user]
 
                   (let [chain (fabric.chain/new client channel)
