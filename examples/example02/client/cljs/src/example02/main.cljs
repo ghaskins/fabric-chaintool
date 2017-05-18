@@ -34,7 +34,7 @@
 (defn print-commands [] (->> commands keys vec print-str))
 
 (def options
-  [["-c" "--config CONFIG" "path/to/client.config"
+  [[nil "--config CONFIG" "path/to/client.config"
     :default "client.config"]
    ["-i" "--id ID" "ChaincodeID"
     :default "mycc"]
@@ -62,7 +62,7 @@
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args options)
-        {:keys [command args]} options]
+        {:keys [config command args]} options]
     (cond
 
       (:help options)
@@ -74,12 +74,12 @@
       :else
       (let [desc (commands command)
             _args (if (nil? args) (:default-args desc) (.parse js/JSON args))
-            _config (.sync readyaml config)]
+            _config (-> (.sync readyaml config)
+                        js->clj)]
 
-        (p/alet [context (p/await (core/connect! options))
+        (p/alet [context (p/await (core/connect! (assoc options :config _config)))
                  params (-> options
-                            (assoc :args _args
-                                   :config _config)
+                            (assoc :args _args)
                             (merge context))]
 
                 (println (str "Running " command "(" (.stringify js/JSON _args) ")"))

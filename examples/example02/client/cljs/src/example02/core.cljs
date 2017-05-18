@@ -21,7 +21,7 @@
 
 (defn- set-state-store [client path]
   (-> (fabric/new-default-kv-store path)
-      (p/then #((fabric/set-state-store client %)))))
+      (p/then #(fabric/set-state-store client %))))
 
 (defn- create-user [client identity]
   (let [config #js {:username (:principal identity)
@@ -33,6 +33,8 @@
 
 (defn connect! [{:keys [config id channel] :as options}]
 
+  (println "config:" config)
+  
   (let [client (fabric/new-client)]
 
     (-> (set-state-store client ".hfc-kvstore")
