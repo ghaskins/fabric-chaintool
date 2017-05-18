@@ -11,3 +11,4 @@ client: ./target/nodecljs/main.js
 
 clean:
 	-@rm -rf ./target ||:
+	-@rm -rf ./node_modules ||:

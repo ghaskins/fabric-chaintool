@@ -5,11 +5,11 @@
                  [org.clojure/clojurescript "1.8.34"]
                  [org.clojure/tools.cli "0.3.3"]
                  [funcool/promesa "1.3.1"]]
-  :plugins [[lein-nodecljs "0.5.0"]]
+  :plugins [[lein-nodecljs "0.6.0"]]
   :npm {:dependencies [[source-map-support "0.4.0"]
                        [protobufjs "5.0.1"]
-                       [fabric-client "1.0.0-alpha"]
-                       [fabric-ca-client "1.0.0-alpha.0"]]}
+                       [read-yaml "1.1.0"]
+                       [fabric-client "1.0.0-alpha2"]]}
   :source-paths ["src" "target/classes"]
   :clean-targets ["out" "release"]
   :target-path "target"

@@ -4,7 +4,6 @@
             [fabric-sdk.core :as fabric]
             [fabric-sdk.chain :as fabric.chain]
             [fabric-sdk.eventhub :as fabric.eventhub]
-            [fabric-sdk.ca :as fabric.ca]
             [fabric-sdk.user :as fabric.user]
             [promesa.core :as p :include-macros true]))
 
@@ -20,58 +19,36 @@
 (def init (loadproto "appinit"))
 (def app (loadproto "org.hyperledger.chaincode.example02"))
 
-(defn- enroll [client ca mspid username password]
-  (-> (fabric.ca/enroll ca username password)
-      (p/then (fn [enrollment]
-                (let [user (fabric.user/new client username)]
-                  (-> (fabric.user/set-enrollment user enrollment mspid)
-                      (p/then #(fabric/set-user-context client user))))))))
+(defn- set-state-store [client path]
+  (-> (fabric/new-default-kv-store path)
+      (p/then #((fabric/set-state-store client %)))))
 
-(defn- get-user [client ca mspid username password]
-  (-> (fabric/get-user-context client username)
-      (p/then (fn [user]
-                (if (fabric.user/enrolled? user)
+(defn- create-user [client identity]
+  (let [config #js {:username (:principal identity)
+                    :mspid (:mspid identity)
+                    :cryptoContent #js {:privateKeyPEM (:privatekey identity)
+                                        :signedCertPEM (:certificate identity)}}]
 
-                  ;; either we found an enrolled user cached in the store
-                  user
+    (fabric.chain/create-user client config)))
 
-                  ;;else, we need to enroll them now
-                  (enroll client ca username password))))))
+(defn connect! [{:keys [config id channel] :as options}]
 
-(defn- make-url [host port]
-  (str "grpc://" host ":" port))
+  (let [client (fabric/new-client)]
 
-(defn connect! [{:keys [peer
-                        peer-port
-                        event-port
-                        orderer
-                        ca
-                        mspid
-                        username
-                        password] :as options}]
+    (-> (set-state-store client ".hfc-kvstore")
+        (p/then #(create-user client (:identity config)))
+        (p/then (fn [user]
 
-  (let [client (fabric/new-client)
-        chain (fabric.chain/new client "chaintool-demo")
-        eventhub (fabric.eventhub/new)]
+                  (let [chain (fabric.chain/new client channel)
+                        eventhub (fabric.eventhub/new)]
 
-    (fabric.eventhub/set-peer-addr eventhub (make-url peer event-port))
-    (fabric.eventhub/connect! eventhub)
+                    (fabric.eventhub/set-peer-addr eventhub (make-url peer event-port))
+                    (fabric.eventhub/connect! eventhub)
 
-    (fabric.chain/add-peer chain (make-url peer peer-port))
-    (fabric.chain/add-orderer chain orderer)
-
-    (-> (fabric/new-default-kv-store ".hfc-kvstore")
-        (p/then (fn [kvstore]
-
-                  (fabric/set-state-store client kvstore)
-
-                  (let [ca-instance (fabric.ca/new ca)]
-                    (-> (get-user client ca-instance mspid username password)
-                        (p/then #(assoc options
-                                        :client client
-                                        :chain chain
-                                        :eventhub eventhub
-                                        :ca ca-instance)))))))))
+                    (fabric.chain/add-peer chain (make-url peer peer-port))
+                    (fabric.chain/add-orderer chain orderer))              
+                  
+                  user)))))
 
 (defn disconnect! [{:keys [eventhub]}]
   (fabric.eventhub/disconnect! eventhub))

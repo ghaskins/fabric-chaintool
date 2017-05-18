@@ -3,7 +3,7 @@
   (:require [cljs.nodejs :as nodejs]
             [promesa.core :as p :include-macros true]))
 
-(def eventhub (nodejs/require "fabric-client/lib/Eventhub.js"))
+(def eventhub (nodejs/require "fabric-client/lib/EventHub.js"))
 
 (defn new []
   (new eventhub))
