@@ -36,6 +36,7 @@
 (def options
   [[nil "--config CONFIG" "path/to/client.config"
     :default "client.config"]
+   ["-p" "--path ID" "path/to/chaincode.car ('install' only)"]
    ["-i" "--id ID" "ChaincodeID"
     :default "mycc"]
    [nil "--channel ID" "Channel ID"

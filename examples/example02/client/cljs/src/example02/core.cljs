@@ -92,7 +92,7 @@
 (defn disconnect! [{:keys [eventhub]}]
   (fabric.eventhub/disconnect! eventhub))
 
-(defn install [{:keys [args] :as context}]
+(defn install [context]
   (-> (rpc/send-install context)
       (p/then #(println "Success!"))))
 
