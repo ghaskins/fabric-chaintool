@@ -24,5 +24,11 @@
 (defn create-user [client spec]
   (m/pwrap (.createUser client spec)))
 
+(defn new-orderer [client url opts]
+  (.newOrderer client url opts))
+
+(defn new-peer [client url opts]
+  (.newPeer client url opts))
+
 (defn get-nonce []
   (.getNonce utils))
