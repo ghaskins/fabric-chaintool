@@ -15,6 +15,9 @@
 (defn set-state-store [client store]
   (.setStateStore client store))
 
+(defn install-chaincode [client request]
+  (m/pwrap (.installChaincode client request)))
+
 (defn get-user-context [client username]
   (m/pwrap (.getUserContext client username)))
 

@@ -83,7 +83,8 @@
                                    (map #(connect-peer client chain config %)))
                         eventhub (connect-eventhub client chain config)]
 
-                    {:chain chain
+                    {:client client
+                     :chain chain
                      :orderer orderer
                      :peers peers
                      :eventhub eventhub

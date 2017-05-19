@@ -18,9 +18,6 @@
 (defn set-dev-mode [chain enabled]
   (.setDevMode chain enabled))
 
-(defn install-chaincode [chain request]
-  (m/pwrap (.installChaincode chain request)))
-
 (defn send-instantiate-proposal [chain request]
   (m/pwrap (.sendInstantiateProposal chain request)))
 
