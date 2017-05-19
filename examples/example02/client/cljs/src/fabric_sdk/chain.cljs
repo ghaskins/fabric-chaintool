@@ -9,13 +9,11 @@
 (defn new [client name]
   (.newChain client name))
 
-(defn add-peer [chain addr]
-  (let [p (new peer addr)]
-    (.addPeer chain p)))
-
-(defn add-orderer [chain addr]
-  (let [o (new orderer addr)]
-    (.addOrderer chain o)))
+(defn add-peer [chain instance]
+  (.addPeer chain instance))
+    
+(defn add-orderer [chain instance]
+  (.addOrderer chain instance))
 
 (defn build-txnid [chain nonce user]
   (.buildTransactionID chain nonce user))

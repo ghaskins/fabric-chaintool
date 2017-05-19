@@ -5,11 +5,11 @@
 
 (def eventhub (nodejs/require "fabric-client/lib/EventHub.js"))
 
-(defn new []
-  (new eventhub))
+(defn new [client]
+  (new eventhub client))
 
-(defn set-peer-addr [instance addr]
-  (.setPeerAddr instance addr))
+(defn set-peer-addr [instance addr opts]
+  (.setPeerAddr instance addr opts))
 
 (defn connect! [instance]
   (.connect instance))

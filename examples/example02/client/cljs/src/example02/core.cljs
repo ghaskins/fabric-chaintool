@@ -57,9 +57,10 @@
 (defn- connect-eventhub [client chain config]
   (let [ca (-> config :ca :certificate)
         {:keys [events hostname]} (-> config :peers first)
-        eventhub (fabric.eventhub/new)]
+        eventhub (fabric.eventhub/new client)]
 
     (fabric.eventhub/set-peer-addr eventhub
+                                   events
                                    #js {:pem ca
                                         :ssl-target-name-override hostname})
     (fabric.eventhub/connect! eventhub)
