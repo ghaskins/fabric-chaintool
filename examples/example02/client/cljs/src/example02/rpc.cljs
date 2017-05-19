@@ -4,13 +4,13 @@
             [fabric-sdk.chain :as fabric.chain]
             [promesa.core :as p :include-macros true]))
 
-(defn- create-base-request [{:keys [chain peers chainid id user]}]
+(defn- create-base-request [{:keys [chain peers channel id user]}]
   (let [nonce (fabric/get-nonce)
-        txid (fabric.chain/build-txnid chain nonce user)]
+        txid (fabric/build-txnid nonce user)]
 
     {:chaincodeType "car"
      :targets peers
-     :chainId chainid
+     :chainId channel
      :chaincodeId id
      :txId txid
      :nonce nonce}))
@@ -28,7 +28,7 @@
     (when (not path)
       (fabric.chain/set-dev-mode chain true))
 
-    (fabric.chain/send-install-proposal chain request)))
+    (fabric.chain/install-chaincode chain request)))
 
 (defn send-instantiate [& args])
 (defn send-transaction [& args])

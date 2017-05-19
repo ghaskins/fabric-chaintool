@@ -121,5 +121,5 @@
   (-> context
       (assoc :func "org.hyperledger.chaincode.example02/fcn/3"
              :args (app.Entity. args))
-      rpc/send-transaction
+      rpc/send-query
       (p/then #(println "Success: Balance =" (->> % app.BalanceResult.decode64 .-balance)))))

@@ -15,11 +15,18 @@
 (defn add-orderer [chain instance]
   (.addOrderer chain instance))
 
-(defn build-txnid [chain nonce user]
-  (.buildTransactionID chain nonce user))
-
 (defn set-dev-mode [chain enabled]
   (.setDevMode chain enabled))
 
-(defn send-install-proposal [chain request]
-  (m/pwrap (.sendInstallProposal chain request)))
+(defn install-chaincode [chain request]
+  (m/pwrap (.installChaincode chain request)))
+
+(defn send-instantiate-proposal [chain request]
+  (m/pwrap (.sendInstantiateProposal chain request)))
+
+(defn send-transaction-proposal [chain request]
+  (m/pwrap (.sendTransactionProposal chain request)))
+
+(defn query-by-chaincode [chain request]
+  (m/pwrap (.queryByChaincode chain request)))
+

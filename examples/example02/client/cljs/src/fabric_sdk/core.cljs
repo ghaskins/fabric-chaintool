@@ -30,5 +30,8 @@
 (defn new-peer [client url opts]
   (.newPeer client url opts))
 
+(defn build-txnid [nonce user]
+  (.buildTransactionID hfc nonce user))
+
 (defn get-nonce []
   (.getNonce utils))
