@@ -31,6 +31,41 @@
 
     (fabric/create-user client config)))
 
+(defn- connect-orderer [client chain config]
+  (let [{:keys [ca hostname url]} (:orderer config)
+        orderer (fabric/new-orderer client
+                                    url
+                                    #js {:pem ca
+                                         :ssl-target-name-override hostname})]
+
+    (fabric.chain/add-orderer chain orderer)
+
+    orderer))
+
+(defn- connect-peer [client chain config peercfg]
+  (let [ca (-> config :ca :certificate)
+        {:keys [api hostname]} peercfg
+        peer (fabric/new-peer client
+                              api
+                              #js {:pem ca
+                                   :ssl-target-name-override hostname})]
+
+    (fabric.chain/add-peer chain peer)
+
+    peer))
+
+(defn- connect-eventhub [client chain config]
+  (let [ca (-> config :ca :certificate)
+        {:keys [events hostname]} (-> config :peers first)
+        eventhub (fabric.eventhub/new)]
+
+    (fabric.eventhub/set-peer-addr eventhub
+                                   #js {:pem ca
+                                        :ssl-target-name-override hostname})
+    (fabric.eventhub/connect! eventhub)
+
+    eventhub))
+
 (defn connect! [{:keys [config id channel] :as options}]
 
   (let [client (fabric/new-client)
@@ -41,15 +76,17 @@
         (p/then (fn [user]
 
                   (let [chain (fabric.chain/new client channel)
-                        eventhub (fabric.eventhub/new)]
+                        orderer (connect-orderer client chain config)
+                        peers (->> config
+                                   :peers
+                                   (map #(connect-peer client chain config %)))
+                        eventhub (connect-eventhub client chain config)]
 
-                    (fabric.eventhub/set-peer-addr eventhub (make-url peer event-port))
-                    (fabric.eventhub/connect! eventhub)
-
-                    (fabric.chain/add-peer chain (make-url peer peer-port))
-                    (fabric.chain/add-orderer chain orderer))              
-                  
-                  user)))))
+                    {:chain chain
+                     :orderer orderer
+                     :peers peers
+                     :eventhub eventhub
+                     :user user}))))))
 
 (defn disconnect! [{:keys [eventhub]}]
   (fabric.eventhub/disconnect! eventhub))

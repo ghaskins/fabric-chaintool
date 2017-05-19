@@ -22,7 +22,6 @@
   (m/pwrap (.setUserContext client user)))
 
 (defn create-user [client spec]
-  (println "spec:" spec)
   (m/pwrap (.createUser client spec)))
 
 (defn get-nonce []
